@@ -1,0 +1,4 @@
+SQLAlchemy
+requests
+git+https://github.com/KaitoCross/pytchat.git
+pymysql

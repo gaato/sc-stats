@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -103,4 +104,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    while True:
+        main()
+        logger.info("Sleeping for 1 hour.")
+        time.sleep(3600)

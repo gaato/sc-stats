@@ -17,7 +17,10 @@ def collect_superchats(video_id: str) -> list[dict]:
     superchats = []
     chat = pytchat.create(video_id=video_id)
     while chat.is_alive():
-        for c in chat.get().items:
+        items = chat.get().items
+        if not items:
+            break
+        for c in items:
             if c.type == "superChat":
                 superchats.append(
                     {
@@ -32,4 +35,4 @@ def collect_superchats(video_id: str) -> list[dict]:
 
 
 if __name__ == "__main__":
-    pprint(collect_superchats("bow5igMTjMU"))
+    pprint(collect_superchats("5sw1tTY4TYo"))

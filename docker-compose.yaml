@@ -4,6 +4,8 @@ services:
   app:
     build:
       context: .
+    volumes:
+      - ./done-before.txt:/app/done-before.txt
     depends_on:
       - db
     env_file:

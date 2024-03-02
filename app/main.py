@@ -37,6 +37,7 @@ def get_from_channel(
         "channel_id": channel_id,
         "status": "past",
         "type": "stream",
+        "include": "live_info",
         "sort": "published_at",
         "order": "desc",
         "limit": 50,
@@ -51,29 +52,31 @@ def get_from_channel(
     data = response.json()
 
     for video in data:
-        video_date = datetime.fromisoformat(video["published_at"]).replace(
-            tzinfo=ZoneInfo("UTC")
-        )
+        end_actual = video.get("end_actual")
+        if not end_actual:
+            logger.debug(f"Video {video['title']} is not a stream. Skipping.")
+            continue
+        video_date = datetime.fromisoformat(end_actual).replace(tzinfo=ZoneInfo("UTC"))
         video_date_jst = video_date.astimezone(ZoneInfo("Asia/Tokyo"))
         if video_date_jst < done_before:
             return
         if video["id"] in done_videos:
             logger.debug(f"Video {video['title']} already collected. Skipping.")
             continue
-        logger.info(f"Collecting superchats for video {video['title']}")
+        logger.info(f"Collecting superchats for video {video['title']} ({video['id']})")
         videos.append(video)
         try:
             superchats = collect_superchats(video["id"])
         except Exception as e:
             logger.error(
-                f"Failed to collect superchats for video {video['title']} ({e})"
+                f"Failed to collect superchats for video {video['title']} ({video['id']}) - {e}"
             )
             continue
         logger.info(f"{len(superchats)} superchats collected.")
         session.bulk_insert_mappings(SuperChat, superchats)
         session.add(DoneVideo(id=video["id"]))
         session.commit()
-        logger.info(f"Superchats collected for video {video['title']}")
+        logger.info(f"Superchats collected for video {video['title']} ({video['id']})")
 
     if len(videos) == 50:
         get_from_channel(offset=offset + 50, stop_datetime=done_before)
@@ -81,7 +84,7 @@ def get_from_channel(
 
 def main():
     started_at = datetime.now(tz=ZoneInfo("Asia/Tokyo"))
-    streamers = session.query(Streamer).all()
+    streamers = session.query(Streamer).filter_by(inactive=False).all()
     with open("done-before.txt", "r") as f:
         done_before = datetime.fromisoformat(f.read().strip())
     done_videos = session.scalars(select(DoneVideo.id)).all()

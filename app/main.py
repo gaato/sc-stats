@@ -23,8 +23,6 @@ handler.setFormatter(
 
 logger.addHandler(handler)
 
-session = Session()
-
 
 def get_from_channel(
     channel_id: str,
@@ -99,12 +97,13 @@ def main():
         logger.info(f"Superchats collected for {streamer.name}")
     with open("done-before.txt", "w") as f:
         f.write(started_at.isoformat())
-    session.close()
     logger.info("All superchats collected.")
 
 
 if __name__ == "__main__":
     while True:
+        session = Session()
         main()
+        session.close()
         logger.info("Sleeping for 1 hour.")
         time.sleep(3600)

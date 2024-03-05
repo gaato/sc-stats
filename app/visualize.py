@@ -37,7 +37,7 @@ start_date, end_date = parse_period(args.period)
 
 session = Session()
 
-base_output_dir = f"output/{start_date.strftime('%Y-%m')}"
+base_output_dir = f"output/{start_date.strftime('%Y')}" if yearly else f"output/{start_date.strftime('%Y-%m')}"
 streamers_output_dir = os.path.join(base_output_dir, "streamers")
 currencies_output_dir = os.path.join(base_output_dir, "currencies")
 

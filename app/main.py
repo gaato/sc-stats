@@ -25,7 +25,7 @@ logger.addHandler(handler)
 
 
 def get_from_channel(
-    channel_id: str,
+    streamer: Streamer,
     offset: int = 0,
     done_before=datetime(2024, 3, 1, tzinfo=ZoneInfo("Asia/Tokyo")),
     done_videos=[],
@@ -33,7 +33,7 @@ def get_from_channel(
     URL = "https://holodex.net/api/v2/videos"
     videos = []
     params = {
-        "channel_id": channel_id,
+        "channel_id": streamer.channel_id,
         "status": "past",
         "type": "stream",
         "include": "live_info",
@@ -65,7 +65,7 @@ def get_from_channel(
         logger.info(f"Collecting superchats for video {video['title']} ({video['id']})")
         videos.append(video)
         try:
-            superchats = collect_superchats(video["id"])
+            superchats = collect_superchats(video["id"], streamer.id)
         except Exception as e:
             logger.error(
                 f"Failed to collect superchats for video {video['title']} ({video['id']}) - {e}"
@@ -90,7 +90,7 @@ def main():
     for streamer in streamers:
         logger.info(f"Collecting superchats for {streamer.name}")
         get_from_channel(
-            streamer.channel_id,
+            streamer,
             done_before=done_before,
             done_videos=done_videos,
         )

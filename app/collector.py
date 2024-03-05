@@ -13,7 +13,7 @@ def argb_to_rgb(argb: int) -> int:
     return rgb
 
 
-def collect_superchats(video_id: str) -> list[dict]:
+def collect_superchats(video_id: str, streamer_id: int) -> list[dict]:
     superchats = []
     chat = pytchat.create(video_id=video_id)
     while chat.is_alive():
@@ -29,6 +29,7 @@ def collect_superchats(video_id: str) -> list[dict]:
                         "amount_value": c.amountValue,
                         "bg_color": argb_to_rgb(c.bgColor),
                         "channel_id": c.author.channelId,
+                        "streamer_id": streamer_id,
                     }
                 )
     return superchats

@@ -22,7 +22,7 @@ class Streamer(Base):
     name = Column(String(255))
     english_name = Column(String(255))
     photo = Column(String(255))
-    channel_id = Column(String(255))
+    channel_id = Column(String(255), unique=True)
     twitter = Column(String(255))
     inactive = Column(Boolean)
     branch_id = Column(Integer, ForeignKey("branches.id"))
@@ -36,6 +36,7 @@ class SuperChat(Base):
     currency = Column(String(255))
     amount_value = Column(Numeric(10, 2))
     bg_color = Column(Integer)
+    channel_id = Column(String(255))
     streamer_id = Column(Integer, ForeignKey("streamers.id"))
     streamer = relationship("Streamer")
 

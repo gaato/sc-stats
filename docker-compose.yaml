@@ -6,10 +6,12 @@ services:
       context: .
     volumes:
       - ./done-before.txt:/app/done-before.txt
+      - ./output:/app/output
     depends_on:
       - db
     env_file:
       - .env
+    tty: true
   db:
     image: mariadb:latest
     environment:

@@ -48,7 +48,13 @@ class DoneVideo(Base):
     streamer = relationship("Streamer")
 
 
-engine = create_engine(f"mysql+pymysql://{os.environ["DB_USER"]}:{os.environ["DB_PASSWORD"]}@db:3306/sc-stats")
+class Collection(Base):
+    __tablename__ = "collections"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    timestamp = Column(DateTime)
+
+
+engine = create_engine(f"mysql+pymysql://{os.environ["MARIADB_USER"]}:{os.environ["MARIADB_PASSWORD"]}@db:3306/sc-stats")
 Base.metadata.create_all(engine)
 
 Session = sessionmaker(bind=engine)

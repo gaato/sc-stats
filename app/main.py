@@ -8,7 +8,7 @@ import requests
 from sqlalchemy import select
 
 from collector import collect_superchats
-from db import DoneVideo, Session, Streamer, SuperChat
+from db import Collection, DoneVideo, Session, Streamer, SuperChat
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -84,8 +84,13 @@ def get_from_channel(
 def main():
     started_at = datetime.now(tz=ZoneInfo("Asia/Tokyo"))
     streamers = session.query(Streamer).filter_by(inactive=False).all()
-    with open("done-before.txt", "r") as f:
-        done_before = datetime.fromisoformat(f.read().strip())
+    done_before = (
+        session.query(Collection.timestamp)
+        .order_by(Collection.timestamp.desc())
+        .scalar()
+    )
+    if not done_before:
+        done_before = datetime(2024, 1, 1, tzinfo=ZoneInfo("Asia/Tokyo"))
     done_videos = session.scalars(select(DoneVideo.id)).all()
     for streamer in streamers:
         logger.info(f"Collecting superchats for {streamer.name}")
@@ -95,8 +100,7 @@ def main():
             done_videos=done_videos,
         )
         logger.info(f"Superchats collected for {streamer.name}")
-    with open("done-before.txt", "w") as f:
-        f.write(started_at.isoformat())
+    session.add(Collection(timestamp=started_at))
     logger.info("All superchats collected.")
 
 

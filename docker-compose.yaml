@@ -9,15 +9,13 @@ services:
       - ./output:/app/output
     depends_on:
       - db
-    env_file:
-      - .env
+    env_file: .env
   db:
     image: mariadb:latest
+    env_file: .env
     environment:
-      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_RANDOM_ROOT_PASSWORD: Jdon My Soul
       MARIADB_DATABASE: sc-stats
-      MARIADB_USER: ${DB_USER}
-      MARIADB_PASSWORD: ${DB_PASSWORD}
       TZ: Asia/Tokyo
     ports:
       - "3306:3306"

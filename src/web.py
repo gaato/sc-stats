@@ -19,9 +19,9 @@ st.set_page_config(
         "Get Help": "https://x.com/gaato11",
         "Report a bug": "https://github.com/gaato/sc-stats/issues",
         "About": "This app visualizes the relationship "
-        "between hololive production talents and fan regions through the superchat currencies.\n"
-        "Developed by [がーと / gaato](https://x.com/gaato11).\n"
-        "This app is not affiliated with Cover Corp.\n",
+        "between hololive production talents and fan regions through the superchat currencies. "
+        "Developed by [がーと / gaato](https://x.com/gaato11).\n\n"
+        "This app is not affiliated with Cover Corp.",
     },
 )
 

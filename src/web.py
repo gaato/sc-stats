@@ -7,21 +7,33 @@ import requests
 import streamlit as st
 from sqlalchemy import func, select
 
-from db import Session, Streamer, SuperChat
+from db import Branch, Session, Streamer, SuperChat
 
 session = Session()
 
 
-all_streamers = session.query(Streamer).all()
+@st.cache_resource(ttl=3600)
+def fetch_all_streamers():
+    return session.query(Streamer).all()
+
+
+all_streamers = fetch_all_streamers()
 all_streamer_names = [s.english_name for s in all_streamers]
-all_currencies = session.scalars(
-    select(SuperChat.currency, func.count(SuperChat.currency).label("count"))
-    .group_by(SuperChat.currency)
-    .order_by(func.count(SuperChat.currency).desc())
-).all()
 
 
-@st.cache_data(ttl=60 * 60 * 24)
+@st.cache_data(ttl=3600)
+def fetch_all_currencies():
+    return session.scalars(
+        select(SuperChat.currency, func.count(SuperChat.currency).label("count"))
+        .group_by(SuperChat.currency)
+        .order_by(func.count(SuperChat.currency).desc())
+    ).all()
+
+
+all_currencies = fetch_all_currencies()
+
+
+@st.cache_data(ttl=3600 * 24)
 def fetch_rates(all_currencies: list[str]) -> dict[str, float]:
     API_URL = "https://api.currencybeacon.com/v1/latest"
     params = {
@@ -74,18 +86,19 @@ def fetch_data_by_currency(start_date, end_date, currency):
             session.query(
                 Streamer.id,
                 Streamer.english_name,
+                Branch.name.label("branch_name"),
                 func.count(SuperChat.id).label("count"),
                 func.sum(SuperChat.amount_value).label("total_amount"),
                 func.count(SuperChat.channel_id.distinct()).label("unique_fans"),
             )
             .join(Streamer, SuperChat.streamer_id == Streamer.id)
+            .join(Branch, Streamer.branch_id == Branch.id)
             .filter(
                 SuperChat.currency == currency,
                 SuperChat.timestamp >= start_date,
                 SuperChat.timestamp < end_date,
             )
-            .group_by(Streamer.id, Streamer.english_name)
-            .group_by(Streamer.id)
+            .group_by(Streamer.id, Streamer.english_name, Branch.name)
             .all()
         )
     df = pd.DataFrame(
@@ -93,6 +106,7 @@ def fetch_data_by_currency(start_date, end_date, currency):
             {
                 "Streamer ID": d.id,
                 "Streamer": d.english_name,
+                "Branch": d.branch_name,
                 "Count": d.count,
                 "Total Amount": float(d.total_amount),
                 "Total Amount (USD)": float(d.total_amount) / rates[currency],

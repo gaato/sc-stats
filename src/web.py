@@ -57,7 +57,7 @@ def fetch_data_by_streamer(start_date, end_date, streamer):
                 SuperChat.currency,
                 func.count(SuperChat.id).label("count"),
                 func.sum(SuperChat.amount_value).label("total_amount"),
-                func.count(SuperChat.channel_id.distinct()).label("unique_fans"),
+                func.count(SuperChat.channel_id.distinct()).label("unique_supporters"),
             )
             .filter(
                 SuperChat.streamer_id == streamer.id,
@@ -74,7 +74,7 @@ def fetch_data_by_streamer(start_date, end_date, streamer):
                 "Count": d.count,
                 "Total Amount": float(d.total_amount),
                 "Total Amount (USD)": float(d.total_amount) / rates[d.currency],
-                "Unique Fans": d.unique_fans,
+                "Unique Supporters": d.unique_supporters,
             }
             for d in data
         ]
@@ -92,7 +92,7 @@ def fetch_data_by_currency(start_date, end_date, currency):
                 Branch.name.label("branch_name"),
                 func.count(SuperChat.id).label("count"),
                 func.sum(SuperChat.amount_value).label("total_amount"),
-                func.count(SuperChat.channel_id.distinct()).label("unique_fans"),
+                func.count(SuperChat.channel_id.distinct()).label("unique_supporters"),
             )
             .join(Streamer, SuperChat.streamer_id == Streamer.id)
             .join(Branch, Streamer.branch_id == Branch.id)
@@ -113,7 +113,7 @@ def fetch_data_by_currency(start_date, end_date, currency):
                 "Count": d.count,
                 "Total Amount": float(d.total_amount),
                 "Total Amount (USD)": float(d.total_amount) / rates[currency],
-                "Unique Fans": d.unique_fans,
+                "Unique Supporters": d.unique_supporters,
             }
             for d in data
         ]
@@ -138,7 +138,7 @@ if category == "Streamer":
     if df.empty:
         st.error("No data found.")
         st.stop()
-    tabs = st.tabs(["Total Amount (USD)", "Count", "Unique Fans"])
+    tabs = st.tabs(["Total Amount (USD)", "Count", "Unique Supporters"])
     figs = [
         go.Figure(
             data=[
@@ -162,8 +162,8 @@ if category == "Streamer":
             data=[
                 go.Pie(
                     labels=df["Currency"],
-                    values=df["Unique Fans"],
-                    name="Unique Fans",
+                    values=df["Unique Supporters"],
+                    name="Unique Supporters",
                 )
             ]
         ),
@@ -173,7 +173,7 @@ else:
     if df.empty:
         st.error("No data found.")
         st.stop()
-    tabs = st.tabs(["Total Amount", "Count", "Unique Fans"])
+    tabs = st.tabs(["Total Amount", "Count", "Unique Supporters"])
     figs = [
         go.Figure(
             data=[
@@ -197,8 +197,8 @@ else:
             data=[
                 go.Pie(
                     labels=df["Streamer"],
-                    values=df["Unique Fans"],
-                    name="Unique Fans",
+                    values=df["Unique Supporters"],
+                    name="Unique Supporters",
                 )
             ]
         ),
@@ -212,4 +212,4 @@ with tabs[1]:
     st.dataframe(df.sort_values("Count", ascending=False), hide_index=True)
 with tabs[2]:
     st.plotly_chart(figs[2], use_container_width=True)
-    st.dataframe(df.sort_values("Unique Fans", ascending=False), hide_index=True)
+    st.dataframe(df.sort_values("Unique Supporters", ascending=False), hide_index=True)

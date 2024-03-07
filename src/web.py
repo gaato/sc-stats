@@ -145,8 +145,8 @@ st.title("Superchat Currency Stats for hololive production")
 
 start_date = st.date_input("Start date", datetime.now() - timedelta(days=30))
 end_date = st.date_input("End date", datetime.now())
-category = st.selectbox("Category", ["Streamer", "Currency"])
-if category == "Streamer":
+type = st.selectbox("Type", ["Streamer", "Currency"])
+if type == "Streamer":
     branch_name = st.selectbox("Branch", all_branch_names)
     branch = next(b for b in all_branches if b.name == branch_name)
     filtered_streamers = [s for s in all_streamers if s.branch_id == branch.id]
@@ -155,7 +155,7 @@ if category == "Streamer":
 else:
     target = st.selectbox("Currency", all_currencies)
 
-if category == "Streamer":
+if type == "Streamer":
     df = fetch_data_by_streamer(
         start_date, end_date, all_streamers[all_streamer_names.index(target)]
     )

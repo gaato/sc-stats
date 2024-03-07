@@ -118,7 +118,8 @@ def fetch_data_by_currency(start_date, end_date, currency):
     return df
 
 
-st.title("sc-stats")
+st.title("Superchat Currency Stats for hololive")
+st.set_page_config(page_title="Superchat Currency Stats for hololive")
 
 start_date = st.date_input("Start date", datetime.now() - timedelta(days=30))
 end_date = st.date_input("End date", datetime.now())

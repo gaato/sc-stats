@@ -12,7 +12,27 @@ from db import Branch, Session, Streamer, SuperChat
 session = Session()
 
 
-st.set_page_config(page_title="Superchat Currency Stats for hololive")
+st.set_page_config(
+    page_title="Superchat Currency Stats for hololive production",
+    page_icon=":globe_with_meridians:",
+    menu_items={
+        "Get Help": "https://x.com/gaato11",
+        "Report a bug": "https://github.com/gaato/sc-stats/issues",
+        "About": "This app visualizes the relationship "
+        "between hololive production talents and fan regions through the superchat currencies.\n"
+        "Developed by [がーと / gaato](https://x.com/gaato11).\n"
+        "This app is not affiliated with Cover Corp.\n",
+    },
+)
+
+
+@st.cache_resource(ttl=3600)
+def fetch_all_branches():
+    return session.query(Branch).all()
+
+
+all_branches = fetch_all_branches()
+all_branch_names = [b.name for b in all_branches]
 
 
 @st.cache_resource(ttl=3600)
@@ -121,13 +141,17 @@ def fetch_data_by_currency(start_date, end_date, currency):
     return df
 
 
-st.title("Superchat Currency Stats for hololive")
+st.title("Superchat Currency Stats for hololive production")
 
 start_date = st.date_input("Start date", datetime.now() - timedelta(days=30))
 end_date = st.date_input("End date", datetime.now())
 category = st.selectbox("Category", ["Streamer", "Currency"])
 if category == "Streamer":
-    target = st.selectbox("Streamer", all_streamer_names)
+    branch_name = st.selectbox("Branch", all_branch_names)
+    branch = next(b for b in all_branches if b.name == branch_name)
+    filtered_streamers = [s for s in all_streamers if s.branch_id == branch.id]
+    filtered_streamer_names = [s.english_name for s in filtered_streamers]
+    target = st.selectbox("Streamer", filtered_streamer_names)
 else:
     target = st.selectbox("Currency", all_currencies)
 

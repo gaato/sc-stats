@@ -102,10 +102,9 @@ def fetch_data_by_streamer(start_date, end_date, streamer):
     return df
 
 
-def fetch_data_by_currency(start_date, end_date, currency, branch=None):
-    rates = fetch_rates(all_currencies)  # Assume this function fetches currency rates
+def fetch_data_by_currency(start_date, end_date, currency, branch_name):
+    rates = fetch_rates(all_currencies)
     with Session() as session:
-        # Start building the query
         query = (
             session.query(
                 Streamer.id,
@@ -123,15 +122,10 @@ def fetch_data_by_currency(start_date, end_date, currency, branch=None):
                 SuperChat.timestamp < end_date,
             )
         )
-
-        # Conditionally filter by branch if provided
-        if branch:
-            query = query.filter(Branch.name == branch)
-
-        # Finalize the query with grouping
+        if branch_name != "All":
+            query = query.filter(Branch.name == branch_name)
         data = query.group_by(Streamer.id, Streamer.english_name, Branch.name).all()
 
-    # Create a DataFrame from the query results
     df = pd.DataFrame(
         [
             {
@@ -161,20 +155,6 @@ match selected_type:
         filtered_streamers = [s for s in all_streamers if s.branch_id == branch.id]
         filtered_streamer_names = [s.english_name for s in filtered_streamers]
         target = st.selectbox("Streamer", filtered_streamer_names)
-    case "Currency":
-        target = st.selectbox("Currency", all_currencies)
-        branch_name = st.selectbox("Branch", ["All"] + all_branch_names)
-        branch = (
-            None
-            if branch_name == "All"
-            else next(b for b in all_branches if b.name == branch_name)
-        )
-    case _:
-        st.error("Invalid type selected.")
-        st.stop()
-
-match selected_type:
-    case "Streamer":
         df = fetch_data_by_streamer(
             start_date, end_date, all_streamers[all_streamer_names.index(target)]
         )
@@ -212,7 +192,9 @@ match selected_type:
             ),
         ]
     case "Currency":
-        df = fetch_data_by_currency(start_date, end_date, target, branch)
+        target = st.selectbox("Currency", all_currencies)
+        branch_name = st.selectbox("Branch", ["All"] + all_branch_names)
+        df = fetch_data_by_currency(start_date, end_date, target, branch_name)
         if df.empty:
             st.error("No data found.")
             st.stop()
@@ -249,6 +231,7 @@ match selected_type:
     case _:
         st.error("Invalid type selected.")
         st.stop()
+
 
 with tabs[0]:
     st.plotly_chart(figs[0], use_container_width=True)

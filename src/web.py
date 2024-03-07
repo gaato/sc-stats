@@ -69,7 +69,9 @@ def fetch_rates(all_currencies: list[str]) -> dict[str, float]:
     return response.json()["rates"]
 
 
-def fetch_data_by_streamer(start_date, end_date, streamer):
+def fetch_data_by_streamer(
+    start_date: datetime, end_date: datetime, streamer: Streamer
+) -> pd.DataFrame:
     rates = fetch_rates(all_currencies)
     with Session() as session:
         data = (
@@ -102,7 +104,9 @@ def fetch_data_by_streamer(start_date, end_date, streamer):
     return df
 
 
-def fetch_data_by_currency(start_date, end_date, currency, branch_name):
+def fetch_data_by_currency(
+    start_date: datetime, end_date: datetime, currency: str, branch_name: str
+) -> pd.DataFrame:
     rates = fetch_rates(all_currencies)
     with Session() as session:
         query = (

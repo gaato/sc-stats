@@ -102,10 +102,11 @@ def fetch_data_by_streamer(start_date, end_date, streamer):
     return df
 
 
-def fetch_data_by_currency(start_date, end_date, currency):
-    rates = fetch_rates(all_currencies)
+def fetch_data_by_currency(start_date, end_date, currency, branch=None):
+    rates = fetch_rates(all_currencies)  # Assume this function fetches currency rates
     with Session() as session:
-        data = (
+        # Start building the query
+        query = (
             session.query(
                 Streamer.id,
                 Streamer.english_name,
@@ -121,9 +122,16 @@ def fetch_data_by_currency(start_date, end_date, currency):
                 SuperChat.timestamp >= start_date,
                 SuperChat.timestamp < end_date,
             )
-            .group_by(Streamer.id, Streamer.english_name, Branch.name)
-            .all()
         )
+
+        # Conditionally filter by branch if provided
+        if branch:
+            query = query.filter(Branch.name == branch)
+
+        # Finalize the query with grouping
+        data = query.group_by(Streamer.id, Streamer.english_name, Branch.name).all()
+
+    # Create a DataFrame from the query results
     df = pd.DataFrame(
         [
             {
@@ -145,88 +153,102 @@ st.title("Superchat Currency Stats for hololive production")
 
 start_date = st.date_input("Start date", datetime.now() - timedelta(days=30))
 end_date = st.date_input("End date", datetime.now())
-type = st.selectbox("Type", ["Streamer", "Currency"])
-if type == "Streamer":
-    branch_name = st.selectbox("Branch", all_branch_names)
-    branch = next(b for b in all_branches if b.name == branch_name)
-    filtered_streamers = [s for s in all_streamers if s.branch_id == branch.id]
-    filtered_streamer_names = [s.english_name for s in filtered_streamers]
-    target = st.selectbox("Streamer", filtered_streamer_names)
-else:
-    target = st.selectbox("Currency", all_currencies)
+selected_type = st.selectbox("Type", ["Streamer", "Currency"])
+match selected_type:
+    case "Streamer":
+        branch_name = st.selectbox("Branch", all_branch_names)
+        branch = next(b for b in all_branches if b.name == branch_name)
+        filtered_streamers = [s for s in all_streamers if s.branch_id == branch.id]
+        filtered_streamer_names = [s.english_name for s in filtered_streamers]
+        target = st.selectbox("Streamer", filtered_streamer_names)
+    case "Currency":
+        target = st.selectbox("Currency", all_currencies)
+        branch_name = st.selectbox("Branch", ["All"] + all_branch_names)
+        branch = (
+            None
+            if branch_name == "All"
+            else next(b for b in all_branches if b.name == branch_name)
+        )
+    case _:
+        st.error("Invalid type selected.")
+        st.stop()
 
-if type == "Streamer":
-    df = fetch_data_by_streamer(
-        start_date, end_date, all_streamers[all_streamer_names.index(target)]
-    )
-    if df.empty:
-        st.error("No data found.")
+match selected_type:
+    case "Streamer":
+        df = fetch_data_by_streamer(
+            start_date, end_date, all_streamers[all_streamer_names.index(target)]
+        )
+        if df.empty:
+            st.error("No data found.")
+            st.stop()
+        tabs = st.tabs(["Total Amount (USD)", "Count", "Unique Supporters"])
+        figs = [
+            go.Figure(
+                data=[
+                    go.Pie(
+                        labels=df["Currency"],
+                        values=df["Total Amount (USD)"],
+                        name="Total Amount (USD)",
+                    )
+                ]
+            ),
+            go.Figure(
+                data=[
+                    go.Pie(
+                        labels=df["Currency"],
+                        values=df["Count"],
+                        name="Count",
+                    )
+                ]
+            ),
+            go.Figure(
+                data=[
+                    go.Pie(
+                        labels=df["Currency"],
+                        values=df["Unique Supporters"],
+                        name="Unique Supporters",
+                    )
+                ]
+            ),
+        ]
+    case "Currency":
+        df = fetch_data_by_currency(start_date, end_date, target, branch)
+        if df.empty:
+            st.error("No data found.")
+            st.stop()
+        tabs = st.tabs(["Total Amount", "Count", "Unique Supporters"])
+        figs = [
+            go.Figure(
+                data=[
+                    go.Pie(
+                        labels=df["Streamer"],
+                        values=df["Total Amount"],
+                        name="Total Amount",
+                    )
+                ]
+            ),
+            go.Figure(
+                data=[
+                    go.Pie(
+                        labels=df["Streamer"],
+                        values=df["Count"],
+                        name="Count",
+                    )
+                ]
+            ),
+            go.Figure(
+                data=[
+                    go.Pie(
+                        labels=df["Streamer"],
+                        values=df["Unique Supporters"],
+                        name="Unique Supporters",
+                    )
+                ]
+            ),
+        ]
+    case _:
+        st.error("Invalid type selected.")
         st.stop()
-    tabs = st.tabs(["Total Amount (USD)", "Count", "Unique Supporters"])
-    figs = [
-        go.Figure(
-            data=[
-                go.Pie(
-                    labels=df["Currency"],
-                    values=df["Total Amount (USD)"],
-                    name="Total Amount (USD)",
-                )
-            ]
-        ),
-        go.Figure(
-            data=[
-                go.Pie(
-                    labels=df["Currency"],
-                    values=df["Count"],
-                    name="Count",
-                )
-            ]
-        ),
-        go.Figure(
-            data=[
-                go.Pie(
-                    labels=df["Currency"],
-                    values=df["Unique Supporters"],
-                    name="Unique Supporters",
-                )
-            ]
-        ),
-    ]
-else:
-    df = fetch_data_by_currency(start_date, end_date, target)
-    if df.empty:
-        st.error("No data found.")
-        st.stop()
-    tabs = st.tabs(["Total Amount", "Count", "Unique Supporters"])
-    figs = [
-        go.Figure(
-            data=[
-                go.Pie(
-                    labels=df["Streamer"],
-                    values=df["Total Amount"],
-                    name="Total Amount",
-                )
-            ]
-        ),
-        go.Figure(
-            data=[
-                go.Pie(
-                    labels=df["Streamer"],
-                    values=df["Count"],
-                    name="Count",
-                )
-            ]
-        ),
-        go.Figure(
-            data=[
-                go.Pie(
-                    labels=df["Streamer"],
-                    values=df["Unique Supporters"],
-                    name="Unique Supporters",
-                )
-            ]
-        ),
-    ]
 
 with tabs[0]:
     st.plotly_chart(figs[0], use_container_width=True)

@@ -1,19 +1,32 @@
 version: '3.8'
 
 services:
-  app:
+  collector:
     build:
       context: .
+      dockerfile: collector.Dockerfile
     volumes:
-      - ./done-before.txt:/app/done-before.txt
       - ./output:/app/output
     depends_on:
       - db
     env_file: .env
+    environment:
+      - ENTRYPOINT=collector.py
+  web:
+    build:
+      context: .
+      dockerfile: web.Dockerfile
+    ports:
+      - "127.0.0.1:8501:8501"
+    depends_on:
+      - db
+    env_file: .env
+    environment:
+      - ENTRYPOINT=web.py
   db:
     image: mariadb:latest
     env_file: .env
     environment:
-      MARIADB_RANDOM_ROOT_PASSWORD: Jdon My Soul
-      MARIADB_DATABASE: sc-stats
-      TZ: Asia/Tokyo
+      - MARIADB_RANDOM_ROOT_PASSWORD=Jdon My Soul
+      - MARIADB_DATABASE=sc-stats
+      - TZ=Asia/Tokyo

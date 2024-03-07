@@ -4,10 +4,10 @@ import time
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+import pytchat
 import requests
 from sqlalchemy import select
 
-from collector import collect_superchats
 from db import Collection, DoneVideo, Session, Streamer, SuperChat
 
 logger = logging.getLogger(__name__)
@@ -22,6 +22,37 @@ handler.setFormatter(
 )
 
 logger.addHandler(handler)
+
+
+def argb_to_rgb(argb: int) -> int:
+    red = (argb >> 16) & 0xFF
+    green = (argb >> 8) & 0xFF
+    blue = argb & 0xFF
+
+    rgb = (red << 16) | (green << 8) | blue
+    return rgb
+
+
+def collect_superchats(video_id: str, streamer_id: int) -> list[dict]:
+    superchats = []
+    chat = pytchat.create(video_id=video_id)
+    while chat.is_alive():
+        items = chat.get().items
+        if not items:
+            break
+        for c in items:
+            if c.type == "superChat":
+                superchats.append(
+                    {
+                        "timestamp": datetime.fromtimestamp(c.timestamp / 1000),
+                        "currency": c.currency.strip(),
+                        "amount_value": c.amountValue,
+                        "bg_color": argb_to_rgb(c.bgColor),
+                        "channel_id": c.author.channelId,
+                        "streamer_id": streamer_id,
+                    }
+                )
+    return superchats
 
 
 def get_from_channel(

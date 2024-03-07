@@ -135,6 +135,9 @@ if category == "Streamer":
     df = fetch_data_by_streamer(
         start_date, end_date, all_streamers[all_streamer_names.index(target)]
     )
+    if df.empty:
+        st.error("No data found.")
+        st.stop()
     tabs = st.tabs(["Total Amount (USD)", "Count", "Unique Fans"])
     figs = [
         go.Figure(
@@ -167,6 +170,9 @@ if category == "Streamer":
     ]
 else:
     df = fetch_data_by_currency(start_date, end_date, target)
+    if df.empty:
+        st.error("No data found.")
+        st.stop()
     tabs = st.tabs(["Total Amount", "Count", "Unique Fans"])
     figs = [
         go.Figure(

@@ -78,7 +78,7 @@ def fetch_data_by_streamer(start_date, end_date, streamer):
             }
             for d in data
         ]
-    ).sort_values("Total Amount (USD)", ascending=False)
+    )
     return df
 
 
@@ -117,7 +117,7 @@ def fetch_data_by_currency(start_date, end_date, currency):
             }
             for d in data
         ]
-    ).sort_values("Streamer ID")
+    )
     return df
 
 

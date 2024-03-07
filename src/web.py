@@ -14,7 +14,11 @@ session = Session()
 
 all_streamers = session.query(Streamer).all()
 all_streamer_names = [s.english_name for s in all_streamers]
-all_currencies = session.scalars(select(SuperChat.currency).distinct()).all()
+all_currencies = session.scalars(
+    select(SuperChat.currency, func.count(SuperChat.currency).label("count"))
+    .group_by(SuperChat.currency)
+    .order_by(func.count(SuperChat.currency).desc())
+).all()
 
 
 @st.cache_data(ttl=60 * 60 * 24)
@@ -177,10 +181,12 @@ else:
         ),
     ]
 
-st.write(df)
 with tabs[0]:
     st.plotly_chart(figs[0], use_container_width=True)
+    st.dataframe(df.sort_values("Total Amount (USD)", ascending=False), hide_index=True)
 with tabs[1]:
     st.plotly_chart(figs[1], use_container_width=True)
+    st.dataframe(df.sort_values("Count", ascending=False), hide_index=True)
 with tabs[2]:
     st.plotly_chart(figs[2], use_container_width=True)
+    st.dataframe(df.sort_values("Unique Fans", ascending=False), hide_index=True)

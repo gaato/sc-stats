@@ -12,6 +12,9 @@ from db import Branch, Session, Streamer, SuperChat
 session = Session()
 
 
+st.set_page_config(page_title="Superchat Currency Stats for hololive")
+
+
 @st.cache_resource(ttl=3600)
 def fetch_all_streamers():
     return session.query(Streamer).all()
@@ -119,7 +122,6 @@ def fetch_data_by_currency(start_date, end_date, currency):
 
 
 st.title("Superchat Currency Stats for hololive")
-st.set_page_config(page_title="Superchat Currency Stats for hololive")
 
 start_date = st.date_input("Start date", datetime.now() - timedelta(days=30))
 end_date = st.date_input("End date", datetime.now())

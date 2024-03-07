@@ -78,7 +78,12 @@ def get_from_channel(
         logger.info(f"Superchats collected for video {video['title']} ({video['id']})")
 
     if len(videos) == 50:
-        get_from_channel(offset=offset + 50, done_before=done_before)
+        get_from_channel(
+            streamer=streamer,
+            offset=offset + 50,
+            done_before=done_before,
+            done_videos=done_videos,
+        )
 
 
 def main():

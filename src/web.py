@@ -2,7 +2,7 @@ import os
 from datetime import datetime, timedelta
 
 import pandas as pd
-import plotly.graph_objects as go
+import plotly.express as px
 import requests
 import streamlit as st
 from sqlalchemy import func, select
@@ -173,56 +173,25 @@ match selected_type:
             st.error("No data found.")
             st.stop()
         tabs = st.tabs(["Total Amount (USD)", "Count", "Unique Supporters"])
-        figs = [
-            go.Figure(
-                data=[
-                    go.Pie(
-                        labels=df["Currency"],
-                        values=df["Total Amount (USD)"],
-                        name="Total Amount (USD)",
-                    )
-                ],
-                layout={
-                    "title": {
-                        "text": f"Total Amount (USD) by Currency for {target}",
-                        "x": 0.5,
-                        "xanchor": "center",
-                    },
-                },
-            ),
-            go.Figure(
-                data=[
-                    go.Pie(
-                        labels=df["Currency"],
-                        values=df["Count"],
-                        name="Count",
-                    )
-                ],
-                layout={
-                    "title": {
-                        "text": f"Count by Currency for {target}",
-                        "x": 0.5,
-                        "xanchor": "center",
-                    },
-                },
-            ),
-            go.Figure(
-                data=[
-                    go.Pie(
-                        labels=df["Currency"],
-                        values=df["Unique Supporters"],
-                        name="Unique Supporters",
-                    )
-                ],
-                layout={
-                    "title": {
-                        "text": f"Unique Supporters by Currency for {target}",
-                        "x": 0.5,
-                        "xanchor": "center",
-                    },
-                },
-            ),
-        ]
+        figs = []
+        for value_name in ("Total Amount (USD)", "Count", "Unique Supporters"):
+            fig = px.pie(
+                df,
+                names="Currency",
+                values=value_name,
+                title=f"{value_name} by Currency for {target}",
+            )
+            fig.update_traces(textposition="inside", textinfo="percent+label")
+            fig.add_annotation(
+                text=f"{start_date.strftime('%Y-%m-%d')} - {end_date.strftime('%Y-%m-%d')}  (N = {df["Count"].sum()})",
+                xref="paper",
+                yref="paper",
+                x=0.5,
+                y=-0.1,
+                showarrow=False,
+                font_size=10,
+            )
+            figs.append(fig)
     case "Currency":
         target = st.selectbox("Currency", all_currencies)
         branch_name = st.selectbox("Branch", ["All"] + all_branch_names)
@@ -231,70 +200,28 @@ match selected_type:
             st.error("No data found.")
             st.stop()
         tabs = st.tabs(["Total Amount", "Count", "Unique Supporters"])
-        figs = [
-            go.Figure(
-                data=[
-                    go.Pie(
-                        labels=df["Streamer"],
-                        values=df["Total Amount"],
-                        name="Total Amount",
-                    )
-                ],
-                layout={
-                    "title": {
-                        "text": f"Total Amount by Streamer using {target}",
-                        "x": 0.5,
-                        "xanchor": "center",
-                    },
-                },
-            ),
-            go.Figure(
-                data=[
-                    go.Pie(
-                        labels=df["Streamer"],
-                        values=df["Count"],
-                        name="Count",
-                    )
-                ],
-                layout={
-                    "title": {
-                        "text": f"Count by Streamer using {target}",
-                        "x": 0.5,
-                        "xanchor": "center",
-                    },
-                },
-            ),
-            go.Figure(
-                data=[
-                    go.Pie(
-                        labels=df["Streamer"],
-                        values=df["Unique Supporters"],
-                        name="Unique Supporters",
-                    )
-                ],
-                layout={
-                    "title": {
-                        "text": f"Unique Supporters by Streamer using {target}",
-                        "x": 0.5,
-                        "xanchor": "center",
-                    },
-                },
-            ),
-        ]
+        figs = []
+        for value_name in ("Total Amount", "Count", "Unique Supporters"):
+            fig = px.pie(
+                df,
+                names="Streamer",
+                values=value_name,
+                title=f"{value_name} by Streamer for {target}",
+            )
+            fig.update_traces(textposition="inside", textinfo="percent+label")
+            fig.add_annotation(
+                text=f"{start_date.strftime('%Y-%m-%d')} - {end_date.strftime('%Y-%m-%d')}  (N = {df["Count"].sum()})",
+                xref="paper",
+                yref="paper",
+                x=0.5,
+                y=-0.1,
+                showarrow=False,
+                font_size=10,
+            )
+            figs.append(fig)
     case _:
         st.error("Invalid type selected.")
         st.stop()
-
-for fig in figs:
-    fig.add_annotation(
-        text=f"Range: {start_date.strftime('%Y-%m-%d')} - {end_date.strftime('%Y-%m-%d')}",
-        xref="paper",
-        yref="paper",
-        x=0.5,
-        y=-0.1,
-        showarrow=False,
-        font_size=10,
-    )
 
 
 with tabs[0]:

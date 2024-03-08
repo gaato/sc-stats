@@ -181,7 +181,10 @@ match selected_type:
                         values=df["Total Amount (USD)"],
                         name="Total Amount (USD)",
                     )
-                ]
+                ],
+                layout={
+                    "title": f"Total Amount (USD) by Currency for {target}",
+                },
             ),
             go.Figure(
                 data=[
@@ -190,7 +193,10 @@ match selected_type:
                         values=df["Count"],
                         name="Count",
                     )
-                ]
+                ],
+                layout={
+                    "title": f"Count by Currency for {target}",
+                },
             ),
             go.Figure(
                 data=[
@@ -199,7 +205,10 @@ match selected_type:
                         values=df["Unique Supporters"],
                         name="Unique Supporters",
                     )
-                ]
+                ],
+                layout={
+                    "title": f"Unique Supporters by Currency for {target}",
+                },
             ),
         ]
     case "Currency":
@@ -218,7 +227,10 @@ match selected_type:
                         values=df["Total Amount"],
                         name="Total Amount",
                     )
-                ]
+                ],
+                layout={
+                    "title": f"Total Amount by Streamer for {target}",
+                },
             ),
             go.Figure(
                 data=[
@@ -227,7 +239,10 @@ match selected_type:
                         values=df["Count"],
                         name="Count",
                     )
-                ]
+                ],
+                layout={
+                    "title": f"Count by Streamer for {target}",
+                },
             ),
             go.Figure(
                 data=[
@@ -236,12 +251,26 @@ match selected_type:
                         values=df["Unique Supporters"],
                         name="Unique Supporters",
                     )
-                ]
+                ],
+                layout={
+                    "title": f"Unique Supporters by Streamer for {target}",
+                },
             ),
         ]
     case _:
         st.error("Invalid type selected.")
         st.stop()
+
+for fig in figs:
+    fig.add_annotation(
+        text=f"Range: {start_date.strftime('%Y-%m-%d')} - {end_date.strftime('%Y-%m-%d')}",
+        xref="paper",
+        yref="paper",
+        x=0.5,
+        y=-0.1,
+        showarrow=False,
+        font_size=10,
+    )
 
 
 with tabs[0]:

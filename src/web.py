@@ -149,8 +149,15 @@ def fetch_data_by_currency(
 
 st.title("Superchat Currency Stats for hololive production")
 
-start_date = st.date_input("Start date", datetime.now() - timedelta(days=30))
-end_date = st.date_input("End date", datetime.now())
+start_date = st.date_input(
+    "Start date",
+    datetime.now() - timedelta(days=30),
+    min_value=datetime(2024, 1, 1),
+    max_value=datetime.now(),
+)
+end_date = st.date_input(
+    "End date", datetime.now(), min_value=start_date, max_value=datetime.now()
+)
 selected_type = st.selectbox("Type", ["Streamer", "Currency"])
 match selected_type:
     case "Streamer":

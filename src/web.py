@@ -1,29 +1,13 @@
-import logging
 import os
 from datetime import datetime, timedelta
-from io import StringIO
-from itertools import combinations
 
 import pandas as pd
 import plotly.graph_objects as go
 import requests
 import streamlit as st
-from pyvis.network import Network
 from sqlalchemy import func, select
 
 from db import Branch, Session, Streamer, SuperChat
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-handler = logging.StreamHandler()
-handler.setFormatter(
-    logging.Formatter(
-        "%(asctime)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-)
-
 
 session = Session()
 
@@ -163,187 +147,102 @@ def fetch_data_by_currency(
     return df
 
 
-currency_tab, network_tab = st.tabs(["Currency Stats", "Network Diagram"])
+st.title("Superchat Currency Stats for hololive production")
 
-with currency_tab:
-    st.header("Superchat Currency Stats for hololive production")
-
-    start_date = st.date_input(
-        "Start date", datetime.now() - timedelta(days=30), key="currency_start_date"
-    )
-    end_date = st.date_input("End date", datetime.now(), key="currency_end_date")
-    selected_type = st.selectbox("Type", ["Streamer", "Currency"])
-    match selected_type:
-        case "Streamer":
-            branch_name = st.selectbox("Branch", all_branch_names)
-            branch = next(b for b in all_branches if b.name == branch_name)
-            filtered_streamers = [s for s in all_streamers if s.branch_id == branch.id]
-            filtered_streamer_names = [s.english_name for s in filtered_streamers]
-            target = st.selectbox("Streamer", filtered_streamer_names)
-            df = fetch_data_by_streamer(
-                start_date, end_date, all_streamers[all_streamer_names.index(target)]
-            )
-            if df.empty:
-                st.error("No data found.")
-            else:
-                tabs = st.tabs(["Total Amount (USD)", "Count", "Unique Supporters"])
-                figs = [
-                    go.Figure(
-                        data=[
-                            go.Pie(
-                                labels=df["Currency"],
-                                values=df["Total Amount (USD)"],
-                                name="Total Amount (USD)",
-                            )
-                        ]
-                    ),
-                    go.Figure(
-                        data=[
-                            go.Pie(
-                                labels=df["Currency"],
-                                values=df["Count"],
-                                name="Count",
-                            )
-                        ]
-                    ),
-                    go.Figure(
-                        data=[
-                            go.Pie(
-                                labels=df["Currency"],
-                                values=df["Unique Supporters"],
-                                name="Unique Supporters",
-                            )
-                        ]
-                    ),
-                ]
-        case "Currency":
-            target = st.selectbox("Currency", all_currencies)
-            branch_name = st.selectbox("Branch", ["All"] + all_branch_names)
-            df = fetch_data_by_currency(start_date, end_date, target, branch_name)
-            if df.empty:
-                st.error("No data found.")
-            else:
-                tabs = st.tabs(["Total Amount", "Count", "Unique Supporters"])
-                figs = [
-                    go.Figure(
-                        data=[
-                            go.Pie(
-                                labels=df["Streamer"],
-                                values=df["Total Amount"],
-                                name="Total Amount",
-                            )
-                        ]
-                    ),
-                    go.Figure(
-                        data=[
-                            go.Pie(
-                                labels=df["Streamer"],
-                                values=df["Count"],
-                                name="Count",
-                            )
-                        ]
-                    ),
-                    go.Figure(
-                        data=[
-                            go.Pie(
-                                labels=df["Streamer"],
-                                values=df["Unique Supporters"],
-                                name="Unique Supporters",
-                            )
-                        ]
-                    ),
-                ]
-        case _:
-            st.error("Invalid type selected.")
-
-    if not df.empty:
-        with tabs[0]:
-            st.plotly_chart(figs[0], use_container_width=True)
-            st.dataframe(
-                df.sort_values("Total Amount (USD)", ascending=False), hide_index=True
-            )
-        with tabs[1]:
-            st.plotly_chart(figs[1], use_container_width=True)
-            st.dataframe(df.sort_values("Count", ascending=False), hide_index=True)
-        with tabs[2]:
-            st.plotly_chart(figs[2], use_container_width=True)
-            st.dataframe(
-                df.sort_values("Unique Supporters", ascending=False), hide_index=True
-            )
-
-with network_tab:
-    st.write("Network")
-    st.header("Streamer Network based on Common Supporters")
-
-    start_date = st.date_input(
-        "Start date", datetime.now() - timedelta(days=30), key="network_start_date"
-    )
-    end_date = st.date_input("End date", datetime.now(), key="network_end_date")
-
-    logging.info(f"Start date: {start_date}, End date: {end_date}")
-    with Session() as session:
-        subquery = (
-            session.query(
-                SuperChat.channel_id,
-                func.group_concat(SuperChat.streamer_id.distinct()).label(
-                    "streamer_ids"
-                ),
-            )
-            .filter(SuperChat.timestamp >= start_date, SuperChat.timestamp <= end_date)
-            .group_by(SuperChat.channel_id)
-            .subquery()
+start_date = st.date_input("Start date", datetime.now() - timedelta(days=30))
+end_date = st.date_input("End date", datetime.now())
+selected_type = st.selectbox("Type", ["Streamer", "Currency"])
+match selected_type:
+    case "Streamer":
+        branch_name = st.selectbox("Branch", all_branch_names)
+        branch = next(b for b in all_branches if b.name == branch_name)
+        filtered_streamers = [s for s in all_streamers if s.branch_id == branch.id]
+        filtered_streamer_names = [s.english_name for s in filtered_streamers]
+        target = st.selectbox("Streamer", filtered_streamer_names)
+        df = fetch_data_by_streamer(
+            start_date, end_date, all_streamers[all_streamer_names.index(target)]
         )
-        results = session.query(subquery.c.channel_id, subquery.c.streamer_ids).all()
-    net = Network()
+        if df.empty:
+            st.error("No data found.")
+            st.stop()
+        tabs = st.tabs(["Total Amount (USD)", "Count", "Unique Supporters"])
+        figs = [
+            go.Figure(
+                data=[
+                    go.Pie(
+                        labels=df["Currency"],
+                        values=df["Total Amount (USD)"],
+                        name="Total Amount (USD)",
+                    )
+                ]
+            ),
+            go.Figure(
+                data=[
+                    go.Pie(
+                        labels=df["Currency"],
+                        values=df["Count"],
+                        name="Count",
+                    )
+                ]
+            ),
+            go.Figure(
+                data=[
+                    go.Pie(
+                        labels=df["Currency"],
+                        values=df["Unique Supporters"],
+                        name="Unique Supporters",
+                    )
+                ]
+            ),
+        ]
+    case "Currency":
+        target = st.selectbox("Currency", all_currencies)
+        branch_name = st.selectbox("Branch", ["All"] + all_branch_names)
+        df = fetch_data_by_currency(start_date, end_date, target, branch_name)
+        if df.empty:
+            st.error("No data found.")
+            st.stop()
+        tabs = st.tabs(["Total Amount", "Count", "Unique Supporters"])
+        figs = [
+            go.Figure(
+                data=[
+                    go.Pie(
+                        labels=df["Streamer"],
+                        values=df["Total Amount"],
+                        name="Total Amount",
+                    )
+                ]
+            ),
+            go.Figure(
+                data=[
+                    go.Pie(
+                        labels=df["Streamer"],
+                        values=df["Count"],
+                        name="Count",
+                    )
+                ]
+            ),
+            go.Figure(
+                data=[
+                    go.Pie(
+                        labels=df["Streamer"],
+                        values=df["Unique Supporters"],
+                        name="Unique Supporters",
+                    )
+                ]
+            ),
+        ]
+    case _:
+        st.error("Invalid type selected.")
+        st.stop()
 
-    net.set_options(
-        """
-    var options = {
-    "nodes": {
-        "font": {
-        "size": 12
-        }
-    },
-    "edges": {
-        "color": {
-        "inherit": true
-        },
-        "smooth": false
-    },
-    "physics": {
-        "enabled": true,
-        "forceAtlas2Based": {
-        "gravitationalConstant": -26,
-        "centralGravity": 0.005,
-        "springLength": 230,
-        "springConstant": 0.18
-        },
-        "maxVelocity": 146,
-        "solver": "forceAtlas2Based",
-        "timestep": 0.35,
-        "stabilization": { "enabled":true, "iterations":150 }
-    }
-    }
-    """
-    )
 
-    weights = {}
-    streamers = session.query(Streamer.id, Streamer.english_name).all()
-    for streamer_id, english_name in streamers:
-        net.add_node(streamer_id, label=english_name)
-
-    for result in results:
-        channel_id, streamer_ids_string = result
-        streamer_ids = set(map(int, streamer_ids_string.split(",")))
-        for streamer_id_pair in combinations(streamer_ids, 2):
-            if streamer_id_pair in weights:
-                weights[streamer_id_pair] += 1
-            else:
-                weights[streamer_id_pair] = 1
-
-    for (source, target), weight in weights.items():
-        net.add_edge(source, target, value=weight, title=f"Common Supporters: {weight}")
-
-    net.save_graph("network.html")
-    with open("network.html", "r") as f:
-        st.components.v1.html(f.read(), height=600, width=800)
+with tabs[0]:
+    st.plotly_chart(figs[0], use_container_width=True)
+    st.dataframe(df.sort_values("Total Amount (USD)", ascending=False), hide_index=True)
+with tabs[1]:
+    st.plotly_chart(figs[1], use_container_width=True)
+    st.dataframe(df.sort_values("Count", ascending=False), hide_index=True)
+with tabs[2]:
+    st.plotly_chart(figs[2], use_container_width=True)
+    st.dataframe(df.sort_values("Unique Supporters", ascending=False), hide_index=True)

@@ -183,7 +183,7 @@ match selected_type:
             )
             fig.update_traces(textposition="inside", textinfo="percent+label")
             fig.add_annotation(
-                text=f"{start_date.strftime('%Y-%m-%d')} - {end_date.strftime('%Y-%m-%d')}  (N = {df["Count"].sum()})",
+                text=f"{start_date.strftime('%Y-%m-%d')} - {end_date.strftime('%Y-%m-%d')}  (Total: {df[value_name].sum()})",
                 xref="paper",
                 yref="paper",
                 x=0.5,
@@ -210,7 +210,7 @@ match selected_type:
             )
             fig.update_traces(textposition="inside", textinfo="percent+label")
             fig.add_annotation(
-                text=f"{start_date.strftime('%Y-%m-%d')} - {end_date.strftime('%Y-%m-%d')}  (N = {df["Count"].sum()})",
+                text=f"{start_date.strftime('%Y-%m-%d')} - {end_date.strftime('%Y-%m-%d')}  (Total: {df[value_name].sum()})",
                 xref="paper",
                 yref="paper",
                 x=0.5,

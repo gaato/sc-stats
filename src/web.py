@@ -183,7 +183,11 @@ match selected_type:
                     )
                 ],
                 layout={
-                    "title": f"Total Amount (USD) by Currency for {target}",
+                    "title": {
+                        "text": f"Total Amount (USD) by Currency for {target}",
+                        "x": 0.5,
+                        "xanchor": "center",
+                    },
                 },
             ),
             go.Figure(
@@ -195,7 +199,11 @@ match selected_type:
                     )
                 ],
                 layout={
-                    "title": f"Count by Currency for {target}",
+                    "title": {
+                        "text": f"Count by Currency for {target}",
+                        "x": 0.5,
+                        "xanchor": "center",
+                    },
                 },
             ),
             go.Figure(
@@ -207,7 +215,11 @@ match selected_type:
                     )
                 ],
                 layout={
-                    "title": f"Unique Supporters by Currency for {target}",
+                    "title": {
+                        "text": f"Unique Supporters by Currency for {target}",
+                        "x": 0.5,
+                        "xanchor": "center",
+                    },
                 },
             ),
         ]
@@ -229,7 +241,11 @@ match selected_type:
                     )
                 ],
                 layout={
-                    "title": f"Total Amount by Streamer for {target}",
+                    "title": {
+                        "text": f"Total Amount by Streamer using {target}",
+                        "x": 0.5,
+                        "xanchor": "center",
+                    },
                 },
             ),
             go.Figure(
@@ -241,7 +257,11 @@ match selected_type:
                     )
                 ],
                 layout={
-                    "title": f"Count by Streamer for {target}",
+                    "title": {
+                        "text": f"Count by Streamer using {target}",
+                        "x": 0.5,
+                        "xanchor": "center",
+                    },
                 },
             ),
             go.Figure(
@@ -253,7 +273,11 @@ match selected_type:
                     )
                 ],
                 layout={
-                    "title": f"Unique Supporters by Streamer for {target}",
+                    "title": {
+                        "text": f"Unique Supporters by Streamer using {target}",
+                        "x": 0.5,
+                        "xanchor": "center",
+                    },
                 },
             ),
         ]

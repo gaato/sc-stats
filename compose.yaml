@@ -5,8 +5,6 @@ services:
     build:
       context: .
       dockerfile: collector.Dockerfile
-    volumes:
-      - ./output:/app/output
     depends_on:
       - db
     env_file: .env

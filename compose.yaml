@@ -27,4 +27,3 @@ services:
     environment:
       - MARIADB_RANDOM_ROOT_PASSWORD=Jdon My Soul
       - MARIADB_DATABASE=sc-stats
-      - TZ=Asia/Tokyo

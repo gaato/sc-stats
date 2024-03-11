@@ -1,7 +1,5 @@
 FROM python:3.12-slim
 
-ENV TZ Asia/Tokyo
-
 WORKDIR /app
 
 RUN apt-get update && \

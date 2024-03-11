@@ -2,7 +2,6 @@ import logging
 import os
 import time
 from datetime import datetime
-from zoneinfo import ZoneInfo
 
 import pytchat
 import requests
@@ -58,7 +57,7 @@ def collect_superchats(video_id: str, streamer_id: int) -> list[dict]:
 def get_from_channel(
     streamer: Streamer,
     offset: int = 0,
-    done_before=datetime(2024, 3, 1, tzinfo=ZoneInfo("Asia/Tokyo")),
+    done_before=datetime(2024, 3, 1),
     done_videos=[],
 ) -> None:
     URL = "https://holodex.net/api/v2/videos"
@@ -86,9 +85,8 @@ def get_from_channel(
         if not end_actual:
             logger.debug(f"Video {video['title']} is not a stream. Skipping.")
             continue
-        video_date = datetime.fromisoformat(end_actual).replace(tzinfo=ZoneInfo("UTC"))
-        video_date_jst = video_date.astimezone(ZoneInfo("Asia/Tokyo"))
-        if video_date_jst < done_before:
+        video_date = datetime.fromisoformat(end_actual)
+        if video_date < done_before:
             return
         if video["id"] in done_videos:
             logger.debug(f"Video {video['title']} already collected. Skipping.")
@@ -118,7 +116,7 @@ def get_from_channel(
 
 
 def main():
-    started_at = datetime.now(tz=ZoneInfo("Asia/Tokyo"))
+    started_at = datetime.now()
     streamers = session.query(Streamer).filter_by(inactive=False).all()
     done_before = (
         session.query(Collection.timestamp)
@@ -126,7 +124,7 @@ def main():
         .scalar()
     )
     if not done_before:
-        done_before = datetime(2024, 1, 1, tzinfo=ZoneInfo("Asia/Tokyo"))
+        done_before = datetime(2024, 1, 1)
     done_videos = session.scalars(select(DoneVideo.id)).all()
     for streamer in streamers:
         logger.info(f"Collecting superchats for {streamer.name}")

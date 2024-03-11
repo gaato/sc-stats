@@ -32,7 +32,7 @@ class Streamer(Base):
 class SuperChat(Base):
     __tablename__ = "super_chats"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    timestamp = Column(DateTime)
+    timestamp = Column(DateTime(timezone=True))
     currency = Column(String(255))
     amount_value = Column(Numeric(10, 2))
     bg_color = Column(Integer)
@@ -51,7 +51,7 @@ class DoneVideo(Base):
 class Collection(Base):
     __tablename__ = "collections"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    timestamp = Column(DateTime)
+    timestamp = Column(DateTime(timezone=True))
 
 
 engine = create_engine(f"mysql+pymysql://{os.environ["MARIADB_USER"]}:{os.environ["MARIADB_PASSWORD"]}@db:3306/sc-stats")

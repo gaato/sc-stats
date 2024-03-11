@@ -45,7 +45,9 @@ def collect_superchats(video_id: str, streamer_id: int) -> tuple[list[dict], boo
             if c.type == "superChat":
                 superchats.append(
                     {
-                        "timestamp": datetime.fromtimestamp(c.timestamp / 1000),
+                        "timestamp": datetime.fromtimestamp(
+                            c.timestamp / 1000, tz=timezone.utc
+                        ),
                         "currency": c.currency.strip(),
                         "amount_value": c.amountValue,
                         "bg_color": argb_to_rgb(c.bgColor),
@@ -128,9 +130,7 @@ def main():
         .order_by(Collection.timestamp.desc())
         .scalar()
     )
-    if done_before:
-        done_before = done_before.replace(tzinfo=timezone.utc)
-    else:
+    if not done_before:
         done_before = datetime(2024, 1, 1, tzinfo=timezone.utc)
     done_videos = session.scalars(select(DoneVideo.id)).all()
     for streamer in streamers:

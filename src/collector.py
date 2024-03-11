@@ -87,7 +87,7 @@ def get_from_channel(
         if not end_actual:
             logger.debug(f"Video {video['title']} is not a stream. Skipping.")
             continue
-        video_date = datetime.fromisoformat(end_actual).replace(tzinfo=timezone.utc)
+        video_date = datetime.fromisoformat(end_actual)
         if video_date < done_before:
             return
         if video["id"] in done_videos:
@@ -127,9 +127,9 @@ def main():
         session.query(Collection.timestamp)
         .order_by(Collection.timestamp.desc())
         .scalar()
-    )
+    ).replace(tzinfo=timezone.utc)
     if not done_before:
-        done_before = datetime(2024, 1, 1)
+        done_before = datetime(2024, 1, 1, tzinfo=timezone.utc)
     done_videos = session.scalars(select(DoneVideo.id)).all()
     for streamer in streamers:
         logger.info(f"Collecting superchats for {streamer.name}")

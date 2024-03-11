@@ -32,14 +32,16 @@ def argb_to_rgb(argb: int) -> int:
     return rgb
 
 
-def collect_superchats(video_id: str, streamer_id: int) -> list[dict]:
+def collect_superchats(video_id: str, streamer_id: int) -> tuple[list[dict], bool]:
     superchats = []
     chat = pytchat.create(video_id=video_id)
+    found_chat = False
     while chat.is_alive():
         items = chat.get().items
         if not items:
             break
         for c in items:
+            found_chat = True
             if c.type == "superChat":
                 superchats.append(
                     {
@@ -51,7 +53,7 @@ def collect_superchats(video_id: str, streamer_id: int) -> list[dict]:
                         "streamer_id": streamer_id,
                     }
                 )
-    return superchats
+    return superchats, found_chat
 
 
 def get_from_channel(
@@ -94,11 +96,14 @@ def get_from_channel(
         logger.info(f"Collecting superchats for video {video['title']} ({video['id']})")
         videos.append(video)
         try:
-            superchats = collect_superchats(video["id"], streamer.id)
+            superchats, found_chat = collect_superchats(video["id"], streamer.id)
         except Exception as e:
             logger.error(
                 f"Failed to collect superchats for video {video['title']} ({video['id']}) - {e}"
             )
+            continue
+        if not found_chat:
+            logger.info(f"No chat found for video {video['title']} ({video['id']})")
             continue
         logger.info(f"{len(superchats)} superchats collected.")
         session.bulk_insert_mappings(SuperChat, superchats)

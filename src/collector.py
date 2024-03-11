@@ -1,7 +1,7 @@
 import logging
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytchat
 import requests
@@ -59,7 +59,7 @@ def collect_superchats(video_id: str, streamer_id: int) -> tuple[list[dict], boo
 def get_from_channel(
     streamer: Streamer,
     offset: int = 0,
-    done_before=datetime(2024, 3, 1, tzinfo=datetime.timezone.utc),
+    done_before=datetime(2024, 3, 1, tzinfo=timezone.utc),
     done_videos=[],
 ) -> None:
     URL = "https://holodex.net/api/v2/videos"
@@ -87,9 +87,7 @@ def get_from_channel(
         if not end_actual:
             logger.debug(f"Video {video['title']} is not a stream. Skipping.")
             continue
-        video_date = datetime.fromisoformat(end_actual).replace(
-            tzinfo=datetime.timezone.utc
-        )
+        video_date = datetime.fromisoformat(end_actual).replace(tzinfo=timezone.utc)
         if video_date < done_before:
             return
         if video["id"] in done_videos:

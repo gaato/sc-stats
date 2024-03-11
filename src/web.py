@@ -84,7 +84,7 @@ def fetch_data_by_streamer(
             .filter(
                 SuperChat.streamer_id == streamer.id,
                 SuperChat.timestamp >= start_date,
-                SuperChat.timestamp <= end_date,
+                SuperChat.timestamp < end_date + timedelta(days=1),
             )
             .group_by(SuperChat.currency)
             .all()
@@ -123,7 +123,7 @@ def fetch_data_by_currency(
             .filter(
                 SuperChat.currency == currency,
                 SuperChat.timestamp >= start_date,
-                SuperChat.timestamp <= end_date,
+                SuperChat.timestamp < end_date + timedelta(days=1),
             )
         )
         if branch_name != "All":

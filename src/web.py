@@ -72,10 +72,10 @@ def fetch_data_by_streamer(
             )
         )
         if streamer is not None:
-            query.filter(SuperChat.streamer_id == streamer.id)
+            query = query.filter(SuperChat.streamer_id == streamer.id)
         elif branch is not None:
-            query.filter(Streamer.branch_id == branch.id)
-            query.join(SuperChat.streamer)
+            query = query.filter(Streamer.branch_id == branch.id)
+            query = query.join(SuperChat.streamer)
         data = query.group_by(SuperChat.currency).all()
 
     df = pd.DataFrame(

@@ -155,7 +155,7 @@ match selected_type:
             branch = None
         else:
             branch = next(b for b in all_branches if b.name == branch_name)
-        filtered_streamers = [s for s in all_streamers if branch is not None or s.branch_id == branch.id]
+        filtered_streamers = [s for s in all_streamers if branch is None or s.branch_id == branch.id]
         filtered_streamer_names = [s.english_name for s in filtered_streamers]
         target = st.selectbox("Streamer", ["All"] + filtered_streamer_names)
         df = fetch_data_by_streamer(

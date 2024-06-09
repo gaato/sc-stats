@@ -61,7 +61,7 @@ def collect_superchats(video_id: str, streamer_id: int) -> tuple[list[dict], boo
 def get_from_channel(
     streamer: Streamer,
     offset: int = 0,
-    done_before=datetime(2024, 1, 1, tzinfo=timezone.utc),
+    done_before=datetime(2021, 1, 1, tzinfo=timezone.utc),
     done_videos=[],
 ) -> None:
     URL = "https://holodex.net/api/v2/videos"
@@ -131,7 +131,7 @@ def main():
         .scalar()
     )
     if not done_before:
-        done_before = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        done_before = datetime(2021, 1, 1, tzinfo=timezone.utc)
     done_videos = session.scalars(select(DoneVideo.id)).all()
     for streamer in streamers:
         logger.info(f"Collecting superchats for {streamer.name}")

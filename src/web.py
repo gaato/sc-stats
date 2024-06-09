@@ -26,34 +26,19 @@ st.set_page_config(
 )
 
 
-@st.cache_data(ttl=3600)
-def fetch_all_branches():
-    return session.query(Branch)
-
-
-all_branches = fetch_all_branches().all()
+all_branches = session.query(Branch).all()
 all_branch_names = [b.name for b in all_branches]
 
 
-@st.cache_data(ttl=3600)
-def fetch_all_streamers():
-    return session.query(Streamer)
-
-
-all_streamers = fetch_all_streamers().all()
+all_streamers = session.query(Streamer).all()
 all_streamer_names = [s.english_name for s in all_streamers]
 
 
-@st.cache_data(ttl=3600)
-def fetch_all_currencies():
-    return session.scalars(
-        select(SuperChat.currency, func.count(SuperChat.currency).label("count"))
-        .group_by(SuperChat.currency)
-        .order_by(func.count(SuperChat.currency).desc())
-    ).all()
-
-
-all_currencies = fetch_all_currencies()
+all_currencies = session.scalars(
+    select(SuperChat.currency, func.count(SuperChat.currency).label("count"))
+    .group_by(SuperChat.currency)
+    .order_by(func.count(SuperChat.currency).desc())
+).all()
 
 
 @st.cache_data(ttl=3600 * 24)

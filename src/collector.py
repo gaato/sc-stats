@@ -108,9 +108,10 @@ def get_from_channel(
             logger.info(f"No chat found for video {video['title']} ({video['id']})")
             continue
         logger.info(f"{len(superchats)} superchats collected.")
-        session.bulk_insert_mappings(SuperChat, superchats)
-        session.add(DoneVideo(id=video["id"], title=video["title"]))
-        session.commit()
+        with Session() as session:
+            session.bulk_insert_mappings(SuperChat, superchats)
+            session.add(DoneVideo(id=video["id"], title=video["title"]))
+            session.commit()
         logger.info(f"Superchats collected for video {video['title']} ({video['id']})")
 
     if len(videos) == 50:
@@ -123,32 +124,31 @@ def get_from_channel(
 
 
 def main():
-    started_at = datetime.now()
-    streamers = session.query(Streamer).filter_by(inactive=False).all()
-    done_before = (
-        session.query(Collection.timestamp)
-        .order_by(Collection.timestamp.desc())
-        .scalar()
-    )
-    if not done_before:
-        done_before = datetime(2021, 1, 1, tzinfo=timezone.utc)
-    done_videos = session.scalars(select(DoneVideo.id)).all()
-    for streamer in streamers:
-        logger.info(f"Collecting superchats for {streamer.name}")
-        get_from_channel(
-            streamer,
-            done_before=done_before,
-            done_videos=done_videos,
+    with Session() as session:
+        started_at = datetime.now()
+        streamers = session.query(Streamer).filter_by(inactive=False).all()
+        done_before = (
+            session.query(Collection.timestamp)
+            .order_by(Collection.timestamp.desc())
+            .scalar()
         )
-        logger.info(f"Superchats collected for {streamer.name}")
-    session.add(Collection(timestamp=started_at))
+        if not done_before:
+            done_before = datetime(2021, 1, 1, tzinfo=timezone.utc)
+        done_videos = session.scalars(select(DoneVideo.id)).all()
+        for streamer in streamers:
+            logger.info(f"Collecting superchats for {streamer.name}")
+            get_from_channel(
+                streamer,
+                done_before=done_before,
+                done_videos=done_videos,
+            )
+            logger.info(f"Superchats collected for {streamer.name}")
+        session.add(Collection(timestamp=started_at))
     logger.info("All superchats collected.")
 
 
 if __name__ == "__main__":
     while True:
-        session = Session()
         main()
-        session.close()
         logger.info("Sleeping for 1 hour.")
         time.sleep(3600)

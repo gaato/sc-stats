@@ -70,11 +70,11 @@ def fetch_rates(all_currencies: list[str]) -> dict[str, float]:
 
 
 def fetch_data_by_streamer(
-    start_date: datetime, end_date: datetime, streamer: Streamer
+    start_date: datetime, end_date: datetime, branch: Branch | None, streamer: Streamer | None
 ) -> pd.DataFrame:
     rates = fetch_rates(all_currencies)
     with Session() as session:
-        data = (
+        query = (
             session.query(
                 SuperChat.currency,
                 func.count(SuperChat.id).label("count"),
@@ -82,13 +82,17 @@ def fetch_data_by_streamer(
                 func.count(SuperChat.channel_id.distinct()).label("unique_supporters"),
             )
             .filter(
-                SuperChat.streamer_id == streamer.id,
                 SuperChat.timestamp >= start_date,
                 SuperChat.timestamp < end_date + timedelta(days=1),
             )
-            .group_by(SuperChat.currency)
-            .all()
         )
+        if streamer is not None:
+            query.filter(SuperChat.streamer_id == streamer.id)
+        elif branch is not None:
+            query.filter(Streamer.branch_id == branch.id)
+            query.join(SuperChat.streamer)
+        data = query.group_by(SuperChat.currency).all()
+
     df = pd.DataFrame(
         [
             {
@@ -161,13 +165,16 @@ end_date = st.date_input(
 selected_type = st.selectbox("Type", ["Streamer", "Currency"])
 match selected_type:
     case "Streamer":
-        branch_name = st.selectbox("Branch", all_branch_names)
-        branch = next(b for b in all_branches if b.name == branch_name)
-        filtered_streamers = [s for s in all_streamers if s.branch_id == branch.id]
+        branch_name = st.selectbox("Branch", ["All"] + all_branch_names)
+        if branch_name == "All":
+            branch = None
+        else:
+            branch = next(b for b in all_branches if b.name == branch_name)
+        filtered_streamers = [s for s in all_streamers if branch is not None or s.branch_id == branch.id]
         filtered_streamer_names = [s.english_name for s in filtered_streamers]
-        target = st.selectbox("Streamer", filtered_streamer_names)
+        target = st.selectbox("Streamer", ["All"] + filtered_streamer_names)
         df = fetch_data_by_streamer(
-            start_date, end_date, all_streamers[all_streamer_names.index(target)]
+            start_date, end_date, branch, all_streamers[all_streamer_names.index(target)] if target != "All" else None
         )
         if df.empty:
             st.error("No data found.")

@@ -109,7 +109,7 @@ def get_from_channel(
             continue
         logger.info(f"{len(superchats)} superchats collected.")
         session.bulk_insert_mappings(SuperChat, superchats)
-        session.add(DoneVideo(id=video["id"]))
+        session.add(DoneVideo(id=video["id"], title=video["title"]))
         session.commit()
         logger.info(f"Superchats collected for video {video['title']} ({video['id']})")
 

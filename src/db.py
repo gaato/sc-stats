@@ -44,6 +44,7 @@ class SuperChat(Base):
 class DoneVideo(Base):
     __tablename__ = "done_videos"
     id = Column(String(255), primary_key=True)
+    title = Column(String(255))
     streamer_id = Column(Integer, ForeignKey("streamers.id"))
     streamer = relationship("Streamer")
 

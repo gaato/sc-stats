@@ -26,21 +26,21 @@ st.set_page_config(
 )
 
 
-@st.cache_resource(ttl=3600)
+@st.cache_data(ttl=3600)
 def fetch_all_branches():
-    return session.query(Branch).all()
+    return session.query(Branch)
 
 
-all_branches = fetch_all_branches()
+all_branches = fetch_all_branches().all()
 all_branch_names = [b.name for b in all_branches]
 
 
-@st.cache_resource(ttl=3600)
+@st.cache_data(ttl=3600)
 def fetch_all_streamers():
-    return session.query(Streamer).all()
+    return session.query(Streamer)
 
 
-all_streamers = fetch_all_streamers()
+all_streamers = fetch_all_streamers().all()
 all_streamer_names = [s.english_name for s in all_streamers]
 
 

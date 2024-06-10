@@ -6,7 +6,8 @@ services:
       context: .
       dockerfile: collector.Dockerfile
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     env_file: .env
     environment:
       - ENTRYPOINT=collector.py
@@ -17,13 +18,18 @@ services:
     ports:
       - "127.0.0.1:8501:8501"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     env_file: .env
     environment:
       - ENTRYPOINT=web.py
   db:
     image: mariadb:latest
     env_file: .env
+    healthcheck:
+      test: exit 0
+      interval: 1s
+      start_period: 1s
     environment:
       - MARIADB_RANDOM_ROOT_PASSWORD=Jdon My Soul
       - MARIADB_DATABASE=sc-stats

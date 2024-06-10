@@ -141,7 +141,7 @@ st.title("Superchat Currency Stats for hololive production")
 start_date = st.date_input(
     "Start date (UTC)",
     datetime.now() - timedelta(days=30),
-    min_value=datetime(2024, 1, 1),
+    min_value=datetime(2021, 1, 1),
     max_value=datetime.now(),
 )
 end_date = st.date_input(
